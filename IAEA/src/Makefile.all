@@ -1,0 +1,78 @@
+
+CXX = g++
+CC  = gcc
+F77 = g77
+
+COUT = -o 
+FOUT = -o 
+DEFS = 
+F77_DEFS = 
+OPTC = -O2 -fPIC
+OPTCXX = -O2 -fPIC
+OPTF77 = -O2
+OBJE = .o
+EXE = 
+libpre = lib
+libext = .so
+
+c_sources = adler32 compress crc32 deflate inffast inflate \
+            inftrees make_zlib trees uncompr zutil
+
+cxx_sources = iaea_header iaea_phsp iaea_record utilities
+
+C_RULE = $(CC) $(DEFS) $(OPTC) -c $(COUT)$@ $(notdir $(basename $@)).c
+CXX_RULE = $(CXX) $(DEFS) $(OPTCXX) -c $(COUT)$@ $(notdir $(basename $@)).cpp
+F77_RULE = $(F77) $(F77_DEFS) $(OPTF77) -c $(FOUT)$@ $(notdir $(basename $@)).F
+
+c_objects = $(addsuffix $(OBJE),$(c_sources))
+cxx_objects = $(addsuffix $(OBJE),$(cxx_sources))
+
+#all: $(c_objects) $(cxx_objects)
+all: $(libpre)iaea_phsp$(libext) test_iaea$(EXE) test_iaea_f$(EXE) test2
+
+$(libpre)iaea_phsp$(libext): $(c_objects) $(cxx_objects)
+	$(CXX) $(OPTCXX) -shared -o $@ $^
+
+test_iaea$(EXE): test_IAEAphsp$(OBJE) $(libpre)iaea_phsp$(libext)
+	$(CXX) -L. -Wl,-rpath,. -o $@ $< -liaea_phsp
+
+test_iaea_f$(EXE): test_IAEAphsp_f$(OBJE)
+	$(F77) -L. -Wl,-rpath,. -o $@ $< -liaea_phsp
+
+test2: test_IAEAphsp_f$(OBJE) $(c_objects) $(cxx_objects) 
+#	$(CXX) $^ -o $@ -lfrtbegin -lg2c 
+	$(F77) $^ -o $@ -lstdc++ 
+
+adler32$(OBJE):   adler32.c zlib.h zconf.h
+compress$(OBJE):  compress.c zlib.h zconf.h
+crc32$(OBJE):     crc32.c zutil.h zlib.h zconf.h crc32.h
+deflate$(OBJE):   deflate.c deflate.h zutil.h zlib.h zconf.h
+inffast$(OBJE):   inffast.c zutil.h zlib.h zconf.h inftrees.h inflate.h \
+                  inffast.h
+inflate$(OBJE):   inflate.c zutil.h zlib.h zconf.h inftrees.h inflate.h \
+                  inffast.h inffixed.h
+inftrees$(OBJE):  inftrees.c zutil.h zlib.h zconf.h inftrees.h
+make_zlib$(OBJE): make_zlib.c zlib.h zconf.h
+trees$(OBJE):     trees.c deflate.h zutil.h zlib.h zconf.h trees.h
+uncompr$(OBJE):   uncompr.c zlib.h zconf.h
+zutil$(OBJE):     zutil.c zutil.h zlib.h zconf.h
+
+iaea_header$(OBJE):   iaea_header.cpp utilities.h iaea_header.h iaea_record.h \
+                      iaea_config.h
+iaea_phsp$(OBJE):     iaea_phsp.cpp utilities.h iaea_record.h iaea_config.h \
+                      iaea_header.h iaea_phsp.h
+iaea_record$(OBJE):   iaea_record.cpp iaea_record.h utilities.h iaea_config.h
+test_IAEAphsp$(OBJE): test_IAEAphsp.cpp iaea_phsp.h iaea_config.h
+utilities$(OBJE):     utilities.cpp utilities.h
+
+$(c_objects):
+	$(C_RULE)
+
+$(cxx_objects):
+	$(CXX_RULE)
+
+test_IAEAphsp$(OBJE): test_IAEAphsp.cpp iaea_phsp.h iaea_config.h
+	$(CXX_RULE)
+
+test_IAEAphsp_f$(OBJE): test_IAEAphsp_f.F
+	$(F77_RULE)

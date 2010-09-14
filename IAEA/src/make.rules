@@ -1,0 +1,113 @@
+#*****************************************************************************
+#
+#  $Id: make.rules,v 1.4 2006/10/20 23:49:04 capote Exp $
+#
+#  Make rules for compiling/linking the IAEA phase space routines
+#  This file gets included into the various Makefiles distributed with 
+#  the system. 
+#  Note: these rules will only work with GNU make!
+#
+#  I. Kawrakow, Oct 19 2006
+#
+#******************************************************************************
+
+# The list of C++ source files and object files needed to build the 
+# IAEA shared library (DLL) for reading/writing phase space files in 
+# the IAEA format
+#
+cxx_sources = iaea_header iaea_phsp iaea_record utilities iaea_event_generator
+
+# The rule for compiling C++ sources
+#
+CXX_RULE = $(CXX) $(DEFS) $(OPTCXX) -c $(COUT)$@ $(notdir $(basename $@)).cpp
+
+# The rule for compiling Fortran sources
+#
+F77_RULE = $(F77) $(F77_DEFS) $(OPTF77) -c $(FOUT)$@ $(notdir $(basename $@)).F
+
+# The IAEA llibrary object files
+#
+cxx_objects = $(addsuffix $(OBJE),$(cxx_sources))
+
+# -----------------------------------------------------------------------------
+
+# Targets
+#
+all: $(libpre)iaea_phsp$(libext) test_iaea$(EXE) test_iaea_f$(EXE) \
+     test2_f$(EXE) test2$(EXE) \
+     test_eg$(EXE) $(libpre)test_f$(libext) $(libpre)test_cpp$(libext)
+
+# Rule for building the IAEA shared library
+#
+$(libpre)iaea_phsp$(libext): $(cxx_objects)
+	$(CXX) $(OPTCXX) $(SHLIB_FLAGS) $(SHLIB_OUT)$@ $^ $(SHLIB_EXTRA) $(IAEA_LIBS)
+
+# Rule for building the example event generator DLL written in Fortran
+# 
+$(libpre)test_f$(libext): example_event_generator.F example_event_generator_f.h
+	$(F77) $(OPTF77) $(SHLIB_FLAGS) $(SHLIB_OUT)$@ $<
+
+# Rule for building the example event generator DLL written in C++
+# 
+$(libpre)test_cpp$(libext): example_event_generator.cpp
+	$(CXX) $(OPTCXX) $(SHLIB_FLAGS) $(SHLIB_OUT)$@ $<
+
+# Rule for building the simple test program written in C++ using 
+# the IAEA shared library
+#
+test_iaea$(EXE): test_IAEAphsp$(OBJE) $(libpre)iaea_phsp$(libext)
+	$(CXX) $(LINK_PRE) $(EXE_OUT)$@ $< $(LINK_POST)
+
+# Rule for building the simple test program written in Fortran using 
+# the IAEA shared library
+#
+test_iaea_f$(EXE): test_IAEAphsp_f$(OBJE)
+	$(F77) $(LINK_PRE) $(EXE_OUT)$@ $< $(LINK_POST)
+
+# Rule for building the simple test Program written in Fortran by 
+# linking all objects together (i.e. not using the IAEA shared library)
+# Note: one can use the C++ or the Fortran compiler in the link step. 
+# Depending on the compiler used, one must specify the libraries needed 
+# by the other compiler.
+#
+test2_f$(EXE): test_IAEAphsp_f$(OBJE) $(cxx_objects) 
+	$(CXX) $^ $(EXE_OUT)$@ $(CXX_F77_LIBS)
+#	$(F77) $^ $(EXE_OUT)$@ $(F77_CXX_LIBS)
+
+# Rule for building the simple test Program written in C++ by 
+# linking all objects together (i.e. not using the IAEA shared library)
+#
+test2$(EXE): test_IAEAphsp$(OBJE) $(cxx_objects)
+	$(CXX) $^ $(EXE_OUT)$@ $(IAEA_LIBS)
+
+# Rule for building the simple test program for testing an event generator DLL
+#
+test_eg$(EXE): test_event_generator$(OBJE) $(libpre)iaea_phsp$(libext)
+	$(CXX) $(LINK_PRE) $(EXE_OUT)$@ $< $(LINK_POST)
+
+#----------------- Dependencies ---------------------------------------------
+
+iaea_header$(OBJE):   iaea_header.cpp utilities.h iaea_header.h iaea_record.h \
+                      iaea_config.h
+iaea_phsp$(OBJE):     iaea_phsp.cpp utilities.h iaea_record.h iaea_config.h \
+                      iaea_header.h iaea_phsp.h
+iaea_record$(OBJE):   iaea_record.cpp iaea_record.h utilities.h iaea_config.h
+test_IAEAphsp$(OBJE): test_IAEAphsp.cpp iaea_phsp.h iaea_config.h
+utilities$(OBJE):     utilities.cpp utilities.h
+iaea_event_generator$(OBJE): iaea_event_generator.cpp iaea_event_generator.h \
+                             iaea_config.h
+test_event_generator$(OBJE): test_event_generator.cpp iaea_event_generator.h \
+                             iaea_config.h
+
+$(cxx_objects):
+	$(CXX_RULE)
+
+test_IAEAphsp$(OBJE): test_IAEAphsp.cpp iaea_phsp.h iaea_config.h
+	$(CXX_RULE)
+
+test_IAEAphsp_f$(OBJE): test_IAEAphsp_f.F
+	$(F77_RULE)
+
+test_event_generator$(OBJE): test_event_generator.cpp iaea_event_generator.h \
+                             iaea_config.h
+	$(CXX_RULE)

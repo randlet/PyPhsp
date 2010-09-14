@@ -1,0 +1,78 @@
+#*****************************************************************************
+#
+#  $Id: Makefile_Linux_intel,v 1.3 2006/10/20 23:49:04 capote Exp $
+#
+#  Make definitions for compiling/linking the IAEA phase space routines
+#  on a Linux system using the Intel C++ and Fortran compilers (version 9.1)
+#
+#  I. Kawrakow, Oct 19 2006
+#
+#******************************************************************************
+
+# The C++ compiler
+CXX = icpc
+
+# The Fortran compiler
+F77 = ifort
+
+# How one tells the C++ compiler the output file name
+COUT = -o 
+
+# How one tells the Fortran compiler the output file name
+FOUT = -o 
+
+# Possible defines for C++ compilations
+DEFS = -DDEBUG
+
+# Possible defines for Fortran compilations
+F77_DEFS = 
+
+# C++ compilation flags
+OPTCXX = -O2 -fPIC
+
+# Fortran compilation flags
+OPTF77 = -O2 -fPIC
+
+# Extension of object files
+OBJE = .o
+
+# Extension of executables
+EXE = 
+
+# Shared library (DLL) prefix
+libpre = lib
+
+# Shared library (DLL) extension
+libext = .so
+
+# Flags needed to create a shared library (DLL)
+SHLIB_FLAGS = -shared
+
+# How one specifies output file name when creating shared libraries
+SHLIB_OUT = -o 
+
+# Extra stuff passed to the linker when creating the IAEA shared library
+#
+SHLIB_EXTRA =
+
+# Libraries needed when creating the IAEA shared library (DLL)
+IAEA_LIBS = -ldl
+
+# Compiler switches to use the IAEA shared library
+LINK_PRE = -L. -Wl,-rpath,.
+LINK_POST = -liaea_phsp
+
+# How one specifies an executable file name
+EXE_OUT = -o 
+
+# Libraries needed when linking together C++ and Fortran code and the link 
+# step is done by the C++ compiler
+# Note: if you are using this you have to adjust the path to your ifort 
+# installation!
+CXX_F77_LIBS = -L/opt/intel/fce/9.1.032/lib -lifport -lifcore /opt/intel/fce/9.1.032/lib/for_main.o
+
+# Libraries needed when linking together C++ and Fortran code and the link
+# step is done by the Fortran compiler
+F77_CXX_LIBS = -lstdc++ -ldl
+
+include make.rules

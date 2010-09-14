@@ -1,0 +1,76 @@
+#*****************************************************************************
+#
+#  $Id: Makefile_Windows_g++_g77,v 1.1 2006/10/19 17:33:42 capote Exp $
+#
+#  Make definitions for compiling/linking the IAEA phase space routines 
+#  on a Windows system using the GNU C++ and Flortran 77 compilers (g++ and g77)
+#
+#  I. Kawrakow, Oct 19 2006
+#
+#******************************************************************************
+
+# The C++ compiler
+CXX = g++
+
+# The Fortran compiler
+F77 = g77
+
+# How one tells the C++ compiler the output file name
+COUT = -o 
+
+# How one tells the Fortran compiler the output file name
+FOUT = -o 
+
+# Possible defines for C++ compilations
+DEFS = -DDEBUG -DWIN32
+
+# Possible defines for Fortran compilations
+F77_DEFS = -DWIN32
+
+# C++ compilation flags
+OPTCXX = -O2 -fPIC
+
+# Fortran compilation flags
+OPTF77 = -O2 -fPIC
+
+# Extension of object files
+OBJE = .o
+
+# Extension of executables
+EXE = .exe
+
+# Shared library (DLL) prefix
+libpre = 
+
+# Shared library (DLL) extension
+libext = .dll
+
+# Flags needed to create a shared library (DLL)
+SHLIB_FLAGS = -shared
+
+# How one specifies output file name when creating shared libraries
+SHLIB_OUT = -o 
+
+# Extra stuff passed to the linker when creating the IAEA shared library
+#
+SHLIB_EXTRA = -Wl,--out-implib,$(@:.dll=.lib)
+
+# Libraries needed when creating the IAEA shared library (DLL)
+IAEA_LIBS = 
+
+# Compiler switches to use the IAEA shared library
+LINK_PRE = -L. 
+LINK_POST = -liaea_phsp
+
+# How one specifies an executable file name
+EXE_OUT = -o 
+
+# Libraries needed when linking together C++ and Fortran code and the link 
+# step is done by the C++ compiler
+CXX_F77_LIBS = -lfrtbegin -lg2c 
+
+# Libraries needed when linking together C++ and Fortran code and the link
+# step is done by the Fortran compiler
+F77_CXX_LIBS = -lstdc++ 
+
+include make.rules
